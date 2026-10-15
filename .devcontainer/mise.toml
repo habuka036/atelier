@@ -1,0 +1,3 @@
+[tools]
+# Match the go.mod of navette and millefeuille (go 1.26.0).
+go = "1.26.0"

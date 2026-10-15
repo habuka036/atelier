@@ -1,0 +1,28 @@
+# Fetched (pinned) upstream sources — reproduced by post-create.sh, not tracked.
+/vendor-src/
+
+# Built binaries.
+/bin/
+
+# Durable experiment state (also mounted as a volume): SQLite DBs and the
+# dedicated Kiro HOME, which contains authentication tokens. NEVER commit.
+/state/
+
+# Durable per-run artifacts (agent working-copy outputs).
+/artifacts/
+
+# macOS / editor noise.
+.DS_Store
+*.swp
+
+# Go build/test leftovers.
+*.test
+*.out
+coverage.*
+
+# Compiled binaries accidentally built inside target projects (e.g. `go build`
+# in targets/dummy-go emits a `dummy` executable). Source stays tracked.
+/targets/dummy-go/dummy
+
+# Any scratch work copies that might land here.
+navette-workcopy-*

@@ -1,0 +1,67 @@
+{
+  // atelier — a general-purpose AI software development environment that
+  // combines NAVETTE (development harness) with MILLEFEUILLE / Une Feuille
+  // (memory/observation foundation, available for future wiring). It is NOT
+  // tied to any specific project.
+  //
+  // This is an INDEPENDENT workspace. It does not modify the NAVETTE,
+  // MILLEFEUILLE, or Une Feuille source repositories; it fetches NAVETTE and
+  // MILLEFEUILLE at pinned full-SHA commits into vendor-src/.
+  //
+  // Security posture (see README "Security model"):
+  //   - Non-root user; NO --privileged, NO --cap-add, NO Docker socket.
+  //   - Only seccomp=unconfined is relaxed (needed by bubblewrap/bun); this is
+  //     not privilege escalation.
+  //   - Host SSH agent, cloud credentials, and ~/.ssh/~/.kiro/~/.aws are NOT
+  //     mounted. Kiro auth lives only in the dedicated, human-authenticated
+  //     /workspace/state/kiro-home.
+  "name": "atelier",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "runArgs": [
+    // Minimal relaxation required by bubblewrap/bun. NOT --privileged.
+    "--security-opt=seccomp=unconfined"
+  ],
+  "remoteUser": "developer",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "mounts": [
+    // Durable experiment state (SQLite DB + dedicated Kiro HOME) survives
+    // container rebuilds. Named volume, not a host bind, so it is isolated.
+    {
+      "source": "atelier_state",
+      "target": "/workspace/state",
+      "type": "volume"
+    },
+    // Durable per-run artifacts survive container rebuilds.
+    {
+      "source": "atelier_artifacts",
+      "target": "/workspace/artifacts",
+      "type": "volume"
+    }
+  ],
+  "containerEnv": {
+    // Pinned FULL commit SHAs for reproducible, non-destructive fetch of the
+    // harness and memory library. Full 40-char SHAs are required (post-create
+    // rejects short/abbrev or tag-like values). Override here for other revs.
+    "NAVETTE_REPO": "https://github.com/habuka036/navette.git",
+    "NAVETTE_COMMIT": "72a035efa5a34668d53f4306c43b10c2373fb409",
+    "MILLEFEUILLE_REPO": "https://github.com/habuka036/millefeuille.git",
+    "MILLEFEUILLE_COMMIT": "a26809862c60a4c03dd8a2b01ebc54d4901425c0"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.Go"
+      ]
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  // No host configuration is imported here. This exists only so the Dev
+  // Containers setup terminal reaches a normal completion (matching the
+  // "press any key to close" behaviour of other workspaces) instead of leaving
+  // the build-log terminal attached without returning control. It does not
+  // affect isolation or import anything from the host.
+  "postStartCommand": "echo 'atelier ready — open a new terminal; see README.md'"
+}
